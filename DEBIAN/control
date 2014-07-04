@@ -1,0 +1,10 @@
+Package: storiq-objet-bonding
+Version: 0.8.2-3
+Section: Intellique
+Priority: optional
+Architecture: all
+Depends: storiq-lib-network(>=0.3), storiq-lib-bonding(>=0.6), storiq-objet-conf(>=1.2), storiq-objet-logger(>=1.1.1)
+Maintainer: Developpers Team <dev@intellique.com>
+Description: storiq-objet-bonding
+ This object handles bonding creation/modification and deletion.
+
