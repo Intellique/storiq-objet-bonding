@@ -474,32 +474,27 @@ sub start {
 
     # Boucle sur toutes les options dans mon fichier de conf
     # et je les set selon leur nature
+	# les slaves en tout dernier!
+	my @slaves;
     foreach my $key ( @{$keys_tab} ) {
         ( $err, $value ) = $OL->{CONF}->get_value( $key, $bond );
         return ( 1, $value ) if ($err);
-
+		
         if ( $key eq "mode" ) {
-
             # le mode est deja gere au dessus.. je zappe
             next;
         }
         elsif ( $key eq "slaves" ) {
             my @tab_list = split( ' ', $value );
-            my @to_set_tab;
-
-            # Faire du boucling ici pour pas setter celle deja setter
-
+            # Boucler ici pour sauter celles deja configurees
             my ( $err_iface, $iface_tab ) = Lib_Bonding::get_iface($bond);
             return ( 1, $iface_tab ) if ($err_iface);
 
             foreach my $iface (@tab_list) {
                 if ( !grep( /^$iface$/, @{$iface_tab} ) ) {
-                    push( @to_set_tab, $iface );
+                    push( @slaves, $iface );
                 }
             }
-
-            ( $err, $err_msg ) = Lib_Bonding::add_iface( $bond, \@to_set_tab )
-                if (@to_set_tab);
         }
         elsif ( $key eq "xmit_hash_policy" ) {
             ( $err, $err_msg ) =
@@ -509,6 +504,9 @@ sub start {
             ( $err, $err_msg ) =
                 Lib_Bonding::set_option( $bond, $key, $value );
         }
+		# enfin on declare les slaves
+        ( $err, $err_msg ) = Lib_Bonding::add_iface( $bond, \@slaves )
+            if (@slaves);
 
         if ($err) {
             _log_error_msg( $OL,
@@ -587,6 +585,13 @@ sub init {
     return ( 0, 0 );
 }
 
+# liste les bonds definis dans le fichier de conf
+sub list_bonds {
+	    my $OL = shift;
+		my @bonds = grep { ! m/DEFAUTINTELLIQUEUNIQUE/ } keys(%{$OL->{CONF}{CONF}}) ;
+		return ( 0 , \@bonds);		
+}
+
 ##### FONCTIONS TRANSPARENTES ####
 sub get_masters {
     return Lib_Bonding::get_masters();
@@ -633,3 +638,4 @@ sub _log_error_msg {
 }
 
 1;
+ 
